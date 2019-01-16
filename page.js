@@ -3,6 +3,8 @@ function Pagination(config) {
 }
 
 Pagination.config = {
+    //元素
+    element: "body",
     //当前页
     current: 1,
     //总记录数
@@ -10,61 +12,139 @@ Pagination.config = {
     //每页显示的数量
     pageSize: 10,
     //class类名
-    className: "monster"
+    className: "monster",
+    //前面5页
+    prePageNumber:5,
+    //后面4页
+    backPageNumber:4
 };
 Pagination.foundation = {
     pagination: function (className) {
-        return '<div class="'+className+'-page">';
+        return '<div class="' + className + '-page">';
     },
-    container:function(className){
-        return '<ul class="'+className+'-page-container">';
+    container: function (className) {
+        return '<ul class="' + className + '-page-container">';
     },
-    index:function(className){
-        return '<li class="'+className+'-page-item '+className+'-page-button"><a href="javascript:void(0);" class="'+className+'page-link">首页</a></li>'
+    index: function (className) {
+        return '<li class="' + className + '-page-item ' + className + '-page-button"><a class="' + className + '-page-link">首页</a></li>'
     },
-    previous:function(className){
-        return '<li class="'+className+'-page-item '+className+'-page-button '+className+'-page-previous"><a href="javascript:void(0);" class="'+className+'page-link">上一页</a></li>'
+    previous: function (className) {
+        return '<li class="' + className + '-page-item ' + className + '-page-button ' + className + '-page-previous"><a class="' + className + '-page-link">上一页</a></li>'
     },
-    next:function(className){
-        return '<li class="'+className+'-page-item '+className+'-page-button"><a href="javascript:void(0);" class="'+className+'page-link">下一页</a></li>'
+    next: function (className) {
+        return '<li class="' + className + '-page-item ' + className + '-page-button"><a class="' + className + '-page-link">下一页</a></li>'
     },
-    end:function(className){
-        return '<li class="'+className+'-page-item '+className+'-page-button"><a href="javascript:void(0);" class="'+className+'-page-link">尾页</a></li>';
+    tail: function (className) {
+        return '<li class="' + className + '-page-item ' + className + '-page-button"><a class="' + className + '-page-link">尾页</a></li>';
     },
-    item:function(number,className){
-        return '<li class="'+className+'-page-item"><a href="javascript:void(0);" class="'+className+'-page-link">'+number+'</a></li>';
+    item: function (number, className) {
+        return '<li class="' + className + '-page-item"><a class="' + className + '-page-link">' + number + '</a></li>';
     },
-    itemClass:function(className){
-        return className+'-page-item';
+    current: function (number, className) {
+        return '<li class="' + className + '-page-item ' + className + '-pager-current-page"><a class="' + className + '-page-link">' + number + '</a></li>';
     },
-    currentClass:function(className){
-        return className+'-pager-current-page';
+    itemClass: function (className) {
+        return className + '-page-item';
     },
-    pageSizeArr:[10,20,30,40]
+    currentClass: function (className) {
+        return className + '-pager-current-page';
+    },
+    pageSizeArr: [10, 20, 30, 40],
+    //最大移动上限
+    maxMove: 10,
+    //最小当前页
+    minCurrentPageNumber: 1,
 };
 Pagination.prototype = {
     construct: Pagination,
     init: function (config) {
+        this.map = {};
         this.config = $.extend({}, Pagination.config, config);
-        if(Pagination.foundation.pageSizeArr.indexOf(this.config.pageSize)===-1){
-            this.config.pageSize=Pagination.foundation.pageSizeArr[0];
+        if (Pagination.foundation.pageSizeArr.indexOf(this.config.pageSize) === -1) {
+            this.config.pageSize = Pagination.foundation.pageSizeArr[0];
         }
+        //计算一共多少页
+        this.map.pageNumber = Math.ceil(this.config.total / this.config.pageSize);
+        //开始页数
+        this.map.start = this.config.current;
+        //结束页数
+        this.map.end = (this.map.pageNumber < Pagination.foundation.maxMove) ? this.map.pageNumber : Pagination.foundation.maxMove;
         this.build();
     },
     build: function () {
-        let page=$(Pagination.foundation.pagination(this.config.className)),
-            container=$(Pagination.foundation.container(this.config.className)),
-            index=$(Pagination.foundation.index(this.config.className)),
-            previous=$(Pagination.foundation.previous(this.config.className))
-
+        let that=this;
+        this.map.page = $(Pagination.foundation.pagination(this.config.className));
+        this.map.container = $(Pagination.foundation.container(this.config.className));
+        this.map.index = $(Pagination.foundation.index(this.config.className));
+        this.map.previous = $(Pagination.foundation.previous(this.config.className));
+        //下一页
+        this.map.next = $(Pagination.foundation.next(this.config.className)).click(function(){
+            if(that.map.currentPage<that.map.pageNumber){
+                console.log(that.map.currentElement.next().click())
+            }
+        });
+        this.map.tail = $(Pagination.foundation.tail(this.config.className));
+        this.map.container.append(this.map.index).append(this.map.previous);
+        this.pageNumber();
+        this.map.container.append(this.map.next).append(this.map.tail);
+        this.map.page.append(this.map.container);
+        $(this.config.element).append(this.map.page);
     },
-    pageNumber:function(){
-        if(Number.parseInt(this.config.total)<1){
+    pageNumber: function () {
+        if (Number.parseInt(this.config.total) < 1) {
             throw new Error("total number error.....")
         }
-
+        this.map.currentPage = this.config.current;
+        //前5后4 大于9 需要移动
+        for (let i = this.map.start; i <= this.map.end; i++) {
+            //当前页
+            if (this.config.current === i) {
+                this.map.currentElement = this.event($(Pagination.foundation.current(i, this.config.className)), i);
+                this.map.container.append(this.map.currentElement);
+                continue;
+            }
+            this.map.container.append(this.event($(Pagination.foundation.item(i, this.config.className)), i));
+        }
     },
-    current:function(){
-
+    event: function (element, page) {
+        let that = this;
+        element.click(function () {
+            if (!element.hasClass(Pagination.foundation.currentClass(that.config.className))) {
+                that.map.currentElement.removeClass(Pagination.foundation.currentClass(that.config.className));
+                that.map.currentElement = $(this).toggleClass(Pagination.foundation.currentClass(that.config.className));
+                that.map.currentPage = page;
+                that.movePage();
+            }
+        });
+        return element;
+    },
+    movePage: function () {
+        //页码大于9个
+        if ((this.map.pageNumber - this.map.start) >= (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber)) {
+            //当前页码后面有5个以上的页码
+            if (this.map.currentPage - this.map.start >= this.config.prePageNumber) {
+                //当前页码加上4个大于总页码数
+                if ((this.map.currentPage + this.config.backPageNumber) >= this.map.pageNumber) {
+                    this.map.end = this.map.pageNumber;
+                    this.map.start = this.map.end - (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                } else {
+                    this.map.end = this.map.currentPage + this.config.backPageNumber;
+                    this.map.start = this.map.currentPage - this.config.prePageNumber;
+                }
+            } else {
+                if ((this.map.currentPage - this.config.prePageNumber) >= Pagination.foundation.minCurrentPageNumber) {
+                    this.map.start = this.map.currentPage - this.config.prePageNumber;
+                    this.map.end = this.map.start + (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                } else {
+                    console.log(this.map.currentPage)
+                    this.map.start = Pagination.foundation.minCurrentPageNumber;
+                    this.map.end = this.map.start + (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                }
+            }
+            //重置当前页
+            this.config.current = this.map.currentPage;
+            this.map.page.remove();
+            this.build();
+        }
     }
 };
