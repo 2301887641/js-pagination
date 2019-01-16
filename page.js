@@ -14,9 +14,9 @@ Pagination.config = {
     //class类名
     className: "monster",
     //前面5页
-    prePageNumber:5,
+    prePageNumber: 5,
     //后面4页
-    backPageNumber:4
+    backPageNumber: 4
 };
 Pagination.foundation = {
     pagination: function (className) {
@@ -72,18 +72,37 @@ Pagination.prototype = {
         this.build();
     },
     build: function () {
-        let that=this;
+        let that = this;
         this.map.page = $(Pagination.foundation.pagination(this.config.className));
         this.map.container = $(Pagination.foundation.container(this.config.className));
-        this.map.index = $(Pagination.foundation.index(this.config.className));
-        this.map.previous = $(Pagination.foundation.previous(this.config.className));
-        //下一页
-        this.map.next = $(Pagination.foundation.next(this.config.className)).click(function(){
-            if(that.map.currentPage<that.map.pageNumber){
-                console.log(that.map.currentElement.next().click())
+        //首页
+        this.map.index = $(Pagination.foundation.index(this.config.className)).click(function () {
+            if (that.map.currentPage > Pagination.foundation.minCurrentPageNumber) {
+                that.map.start = that.config.current = Pagination.foundation.minCurrentPageNumber;
+                that.map.end = (that.map.pageNumber < Pagination.foundation.maxMove) ? that.map.pageNumber : Pagination.foundation.maxMove;
+                that.map.page.remove();
+                that.build();
             }
         });
-        this.map.tail = $(Pagination.foundation.tail(this.config.className));
+        //上一页
+        this.map.previous = $(Pagination.foundation.previous(this.config.className)).click(function () {
+            if (that.map.currentPage > Pagination.foundation.minCurrentPageNumber) {
+                that.map.currentElement.prev().click()
+            }
+        });
+        //下一页
+        this.map.next = $(Pagination.foundation.next(this.config.className)).click(function () {
+            if (that.map.currentPage < that.map.pageNumber) {
+                that.map.currentElement.next().click()
+            }
+        });
+        //尾页
+        this.map.tail = $(Pagination.foundation.tail(this.config.className)).click(function () {
+            that.map.end = that.config.current = that.map.pageNumber;
+            that.map.start = (that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber) > 0 ? that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber : Pagination.foundation.minCurrentPageNumber;
+            that.map.page.remove();
+            that.build();
+        });
         this.map.container.append(this.map.index).append(this.map.previous);
         this.pageNumber();
         this.map.container.append(this.map.next).append(this.map.tail);
@@ -91,7 +110,7 @@ Pagination.prototype = {
         $(this.config.element).append(this.map.page);
     },
     pageNumber: function () {
-        if (Number.parseInt(this.config.total) < 1) {
+        if (Number.parseInt(this.config.total) < Pagination.foundation.minCurrentPageNumber) {
             throw new Error("total number error.....")
         }
         this.map.currentPage = this.config.current;
@@ -120,13 +139,13 @@ Pagination.prototype = {
     },
     movePage: function () {
         //页码大于9个
-        if ((this.map.pageNumber - this.map.start) >= (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber)) {
+        if ((this.map.pageNumber - this.map.start) >= (Pagination.foundation.maxMove - Pagination.foundation.minCurrentPageNumber)) {
             //当前页码后面有5个以上的页码
             if (this.map.currentPage - this.map.start >= this.config.prePageNumber) {
                 //当前页码加上4个大于总页码数
                 if ((this.map.currentPage + this.config.backPageNumber) >= this.map.pageNumber) {
                     this.map.end = this.map.pageNumber;
-                    this.map.start = this.map.end - (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                    this.map.start = this.map.end - (Pagination.foundation.maxMove - Pagination.foundation.minCurrentPageNumber);
                 } else {
                     this.map.end = this.map.currentPage + this.config.backPageNumber;
                     this.map.start = this.map.currentPage - this.config.prePageNumber;
@@ -134,11 +153,10 @@ Pagination.prototype = {
             } else {
                 if ((this.map.currentPage - this.config.prePageNumber) >= Pagination.foundation.minCurrentPageNumber) {
                     this.map.start = this.map.currentPage - this.config.prePageNumber;
-                    this.map.end = this.map.start + (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                    this.map.end = this.map.start + (Pagination.foundation.maxMove - Pagination.foundation.minCurrentPageNumber);
                 } else {
-                    console.log(this.map.currentPage)
                     this.map.start = Pagination.foundation.minCurrentPageNumber;
-                    this.map.end = this.map.start + (Pagination.foundation.maxMove-Pagination.foundation.minCurrentPageNumber);
+                    this.map.end = this.map.start + (Pagination.foundation.maxMove - Pagination.foundation.minCurrentPageNumber);
                 }
             }
             //重置当前页
