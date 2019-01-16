@@ -22,8 +22,8 @@
             text-align: center;
             text-decoration: none;
         }
-        .monster-page .monster-page-container .monster-page-item .page-link,
-        .monster-page .monster-page-container .monster-pager-current-page .page-link
+        .monster-page .monster-page-container .monster-page-item .monster-page-link,
+        .monster-page .monster-page-container .monster-pager-current-page .monster-page-link
         {
             display:block;
             border: 1px solid #dee2e6;
@@ -33,7 +33,7 @@
             text-decoration: none;
             margin-left: -1px;
         }
-        .monster-page .monster-page-container .monster-pager-current-page .page-link,.monster-page .monster-page-container .monster-page-item .page-link:hover{
+        .monster-page .monster-page-container .monster-pager-current-page .monster-page-link,.monster-page .monster-page-container .monster-page-item .monster-page-link:hover{
             background:#2962FF;
             color:#fff;
         }
@@ -42,16 +42,20 @@
 <body>
 <div class="monster-page">
         <ul class="monster-page-container">
-            <li class="monster-page-item monster-page-button"><a href="javascript:void(0);" class="page-link">首页</a></li>
+            <li class="monster-page-item monster-page-button"><a href="javascript:void(0);" class="monster-page-link">首页</a></li>
             <li class="monster-page-item monster-page-button monster-page-previous"><a href="javascript:void(0);" class="page-link">上一页</a></li>
             <li class="monster-pager-current-page"><a href="javascript:void(0);" class="page-link">1</a></li>
             <li class="monster-page-item"><a href="javascript:void(0);" class="page-link">2</a></li>
             <li class="monster-page-item"><a href="javascript:void(0);" class="page-link">3</a></li>
             <li class="monster-page-item"><a href="javascript:void(0);" class="page-link">4</a></li>
             <li class="monster-page-item"><a href="javascript:void(0);" class="page-link">5</a></li>
-            <li class="monster-page-item monster-page-button"><a href="javascript:void(0);" class="page-link">下一页</a></li>
             <li class="monster-page-item monster-page-button"><a href="javascript:void(0);" class="page-link">尾页</a></li>
         </ul>
 </div>
 </body>
 </html>
+<script>
+    new Pagination({
+        total:100
+    })
+</script>
