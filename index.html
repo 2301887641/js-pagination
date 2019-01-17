@@ -35,9 +35,17 @@
             text-decoration: none;
             margin-left: -1px;
         }
+        .monster-page .monster-page-container .monster-page-disabled .monster-page-link{
+            color:#ccc;
+            cursor: Default;
+        }
         .monster-page .monster-page-container .monster-pager-current-page .monster-page-link,.monster-page .monster-page-container .monster-page-item .monster-page-link:hover{
             background:#2962FF;
             color:#fff;
+        }
+        .monster-page .monster-page-container .monster-page-disabled .monster-page-link:hover{
+            background:#fff;
+            color:#ccc;
         }
     </style>
 </head>
@@ -47,6 +55,7 @@
 <script>
     new Pagination({
         total:991
-    }).on("current-change",function(currentPage){
+    }).on(Pagination.event.currentChange,function(currentPage){
+        console.log(currentPage)
     })
 </script>

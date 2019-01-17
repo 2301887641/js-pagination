@@ -19,8 +19,8 @@ Pagination.config = {
     backPageNumber: 4
 };
 // 事件
-Pagination.event={
-    currentChange:"current-change"
+Pagination.event = {
+    currentChange: "current-change"
 };
 Pagination.foundation = {
     pagination: function (className) {
@@ -52,6 +52,9 @@ Pagination.foundation = {
     },
     currentClass: function (className) {
         return className + '-pager-current-page';
+    },
+    disableClass: function (className) {
+        return className + '-page-disabled';
     },
     pageSizeArr: [10, 20, 30, 40],
     //最大移动上限
@@ -121,6 +124,7 @@ Pagination.prototype = {
         //首页
         this.map.index = $(Pagination.foundation.index(this.config.className)).click(function () {
             if (that.map.currentPage > Pagination.foundation.minCurrentPageNumber) {
+                that.observer.trigger(Pagination.event.currentChange, Pagination.foundation.minCurrentPageNumber);
                 that.map.start = that.config.current = Pagination.foundation.minCurrentPageNumber;
                 that.map.end = (that.map.pageNumber < Pagination.foundation.maxMove) ? that.map.pageNumber : Pagination.foundation.maxMove;
                 that.map.page.remove();
@@ -141,16 +145,30 @@ Pagination.prototype = {
         });
         //尾页
         this.map.tail = $(Pagination.foundation.tail(this.config.className)).click(function () {
-            that.map.end = that.config.current = that.map.pageNumber;
-            that.map.start = (that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber) > 0 ? that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber : Pagination.foundation.minCurrentPageNumber;
-            that.map.page.remove();
-            that.build();
+            if (that.map.currentPage < that.map.pageNumber) {
+                that.observer.trigger(Pagination.event.currentChange,that.map.pageNumber);
+                that.map.end = that.config.current = that.map.pageNumber;
+                that.map.start = (that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber) > 0 ? that.map.pageNumber - Pagination.foundation.maxMove + Pagination.foundation.minCurrentPageNumber : Pagination.foundation.minCurrentPageNumber;
+                that.map.page.remove();
+                that.build();
+            }
         });
-        if(this.config.current!==Pagination.foundation.minCurrentPageNumber){
+        //上一页和首页
+        if (this.config.current === Pagination.foundation.minCurrentPageNumber) {
+            this.map.index.addClass(Pagination.foundation.disableClass(this.config.className));
+            this.map.previous.addClass(Pagination.foundation.disableClass(this.config.className));
+            this.map.container.append(this.map.index).append(this.map.previous);
+        } else {
             this.map.container.append(this.map.index).append(this.map.previous);
         }
         this.pageNumber();
-        this.map.container.append(this.map.next).append(this.map.tail);
+        if (this.config.current === this.map.pageNumber) {
+            this.map.next.addClass(Pagination.foundation.disableClass(this.config.className));
+            this.map.tail.addClass(Pagination.foundation.disableClass(this.config.className));
+            this.map.container.append(this.map.next).append(this.map.tail);
+        } else {
+            this.map.container.append(this.map.next).append(this.map.tail);
+        }
         this.map.page.append(this.map.container);
         $(this.config.element).append(this.map.page);
     },
@@ -171,9 +189,9 @@ Pagination.prototype = {
         }
     },
     //绑定事件
-    on:function(type,handler){
-        let that=this;
-        this.observer.listen(type,function(currentPage){
+    on: function (type, handler) {
+        let that = this;
+        this.observer.listen(type, function (currentPage) {
             handler(currentPage);
         });
         return this;
@@ -183,7 +201,7 @@ Pagination.prototype = {
         let that = this;
         element.click(function () {
             if (!element.hasClass(Pagination.foundation.currentClass(that.config.className))) {
-                that.observer.trigger(Pagination.event.currentChange,page);
+                that.observer.trigger(Pagination.event.currentChange, page);
                 that.map.currentElement.removeClass(Pagination.foundation.currentClass(that.config.className));
                 that.map.currentElement = $(this).toggleClass(Pagination.foundation.currentClass(that.config.className));
                 that.map.currentPage = page;
