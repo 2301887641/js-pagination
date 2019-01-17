@@ -245,7 +245,7 @@
         }
     };
     Pagination.prototype.init.prototype = Pagination.prototype;
-    if(!window.monsterPagination){
-        window.monsterPagination =  Pagination;
+    if(!w.monsterPagination){
+        w.monsterPagination =  Pagination;
     }
 })(window);
