@@ -18,6 +18,10 @@ Pagination.config = {
     //后面4页
     backPageNumber: 4
 };
+// 事件
+Pagination.event={
+    currentChange:"current-change"
+};
 Pagination.foundation = {
     pagination: function (className) {
         return '<div class="' + className + '-page">';
@@ -57,6 +61,44 @@ Pagination.foundation = {
 };
 Pagination.prototype = {
     construct: Pagination,
+    //发布订阅模式
+    observer: {
+        //缓存列表
+        clientList: [],
+        //订阅函数
+        listen: function (key, fn) {
+            if (!this.clientList[key])
+                this.clientList[key] = [];
+            this.clientList[key].push(fn);
+        },
+        //发布函数
+        trigger: function () {
+            let key = Array.prototype.shift.call(arguments);
+            let fns = this.clientList[key];
+            if (!fns || fns.length === 0)
+                return false;
+            for (let i = 0, fn; fn = fns[i++];) {
+                fn.apply(this, arguments);
+            }
+        },
+        //删除函数
+        remove: function (key, fn) {
+            let fns = this.clientList[key];
+            if (!fns || fns.length === 0)
+                return false;
+            if (!fn) {
+                fns && (fns.length = 0);
+            } else {
+                for (let i = fns.length - 1; i >= 0; i--) {
+                    let _fn = fns[i];
+                    if (_fn === fn) {
+                        fns.splice(i, 1);
+                    }
+                }
+            }
+        }
+    },
+    //初始化
     init: function (config) {
         this.map = {};
         this.config = $.extend({}, Pagination.config, config);
@@ -71,6 +113,7 @@ Pagination.prototype = {
         this.map.end = (this.map.pageNumber < Pagination.foundation.maxMove) ? this.map.pageNumber : Pagination.foundation.maxMove;
         this.build();
     },
+    //构建
     build: function () {
         let that = this;
         this.map.page = $(Pagination.foundation.pagination(this.config.className));
@@ -103,7 +146,9 @@ Pagination.prototype = {
             that.map.page.remove();
             that.build();
         });
-        this.map.container.append(this.map.index).append(this.map.previous);
+        if(this.config.current!==Pagination.foundation.minCurrentPageNumber){
+            this.map.container.append(this.map.index).append(this.map.previous);
+        }
         this.pageNumber();
         this.map.container.append(this.map.next).append(this.map.tail);
         this.map.page.append(this.map.container);
@@ -125,10 +170,20 @@ Pagination.prototype = {
             this.map.container.append(this.event($(Pagination.foundation.item(i, this.config.className)), i));
         }
     },
+    //绑定事件
+    on:function(type,handler){
+        let that=this;
+        this.observer.listen(type,function(currentPage){
+            handler(currentPage);
+        });
+        return this;
+    },
+    //事件
     event: function (element, page) {
         let that = this;
         element.click(function () {
             if (!element.hasClass(Pagination.foundation.currentClass(that.config.className))) {
+                that.observer.trigger(Pagination.event.currentChange,page);
                 that.map.currentElement.removeClass(Pagination.foundation.currentClass(that.config.className));
                 that.map.currentElement = $(this).toggleClass(Pagination.foundation.currentClass(that.config.className));
                 that.map.currentPage = page;
