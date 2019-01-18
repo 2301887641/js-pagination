@@ -1,4 +1,4 @@
-;(function(w) {
+;(function (w) {
     function Pagination(config) {
         return new Pagination.prototype.init(config);
     }
@@ -237,15 +237,16 @@
                         this.map.end = this.map.start + (Pagination.foundation.maxMove - Pagination.foundation.minCurrentPageNumber);
                     }
                 }
-                //重置当前页
-                this.config.current = this.map.currentPage;
-                this.map.page.remove();
-                this.build();
+
             }
+            //重置当前页
+            this.config.current = this.map.currentPage;
+            this.map.page.remove();
+            this.build();
         }
     };
     Pagination.prototype.init.prototype = Pagination.prototype;
-    if(!w.monsterPagination){
-        w.monsterPagination =  Pagination;
+    if (!w.monsterPagination) {
+        w.monsterPagination = Pagination;
     }
 })(window);
